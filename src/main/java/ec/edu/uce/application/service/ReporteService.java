@@ -1,51 +1,65 @@
 package ec.edu.uce.application.service;
-
 import java.util.List;
 
+import ec.edu.uce.application.interceptor.interceptor.Auditoria;
 import ec.edu.uce.domain.model.Reporte;
 import ec.edu.uce.infraestructure.repository.ReporteRepositoryImpl;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
-@ApplicationScoped
 @Transactional
+@ApplicationScoped
 public class ReporteService {
 
     @Inject
-    private ReporteRepositoryImpl reporteRepository;
+    private ReporteRepositoryImpl reporteRepositoryImpl;
 
-    public List<Reporte> buscarTodos() {
-        return (List<Reporte>) this.reporteRepository.findAll();
+    @Auditoria
+    public void guardarReporte(Reporte reporte) {
+        String nombreHilo = Thread.currentThread().getName();
+        System.out.println("Nombre del hilo ReporteService: " + nombreHilo);
+        System.out.println("ID: " + Thread.currentThread().threadId());
+        this.reporteRepositoryImpl.persist(reporte);
+
+    }
+
+    public void eliminarReporte(Integer id) {
+        this.reporteRepositoryImpl.deleteById(this.reporteRepositoryImpl.findById(id).getId());
+    }
+
+    public void actualizarReporte(Reporte reporte, Integer id) {
+
+        Reporte reporteBase = this.buscarPorId(id);
+        reporteBase.setDescripcion(reporte.getDescripcion());
+        reporteBase.setEstado(reporte.getEstado());
+        reporteBase.setFecha(reporte.getFecha());
+        reporteBase.setNombre(reporte.getNombre());
+        reporteBase.setTipo(reporte.getTipo());
+
+
     }
 
     public Reporte buscarPorId(Integer id) {
-        return this.reporteRepository.findById(id);
+        return this.reporteRepositoryImpl.findById(id);
     }
 
-    public void guardar(Reporte reporte) {
-        this.reporteRepository.persist(reporte);
+    public List<Reporte> buscarTodos() {
+        return this.reporteRepositoryImpl.findAll().list();
     }
 
-    public void eliminar(Integer id) {
-        this.reporteRepository.delete(this.buscarPorId(id));
+    //////////////////////
+
+    @Auditoria
+    public void guardarListaReportes(List<Reporte> lista) {
+        for (ec.edu.uce.domain.model.Reporte repo : lista) {
+            this.reporteRepositoryImpl.persist(repo);
+        }
+
     }
 
-    public void actualizar(Reporte reporteActualizado, Integer id) {
-        // this.reporteRepository.getEntityManager().merge(reporte);
-        Reporte reporteBase = this.buscarPorId(id);
-        reporteBase.setNombre(reporteActualizado.getNombre());
-        reporteBase.setDescripcion(reporteActualizado.getDescripcion());
-        reporteBase.setFecha(reporteActualizado.getFecha());
-        reporteBase.setEstado(reporteActualizado.getEstado());
-        reporteBase.setTipo(reporteActualizado.getTipo());
-
-        // NO hace falta realizar explicitamente un update
-    }
-
-    public void actualizar2(Reporte reporte) {
-        // this.reporteRepository.getEntityManager().merge(reporte);
-        Reporte reporteBase = this.buscarPorId(reporte.getId());
+    public Reporte buscarPorTitulo(String titulo) {
+        return this.reporteRepositoryImpl.buscarPorTitulo(titulo);
     }
 
 }

@@ -2,6 +2,7 @@ package ec.edu.uce.application.service;
 
 import java.util.List;
 
+import ec.edu.uce.application.interceptor.interceptor.Auditoria;
 import ec.edu.uce.domain.model.Propiedad;
 import ec.edu.uce.infraestructure.repository.PropiedadRepositoryImpl;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,20 +16,16 @@ public class PropiedadService {
     @Inject
     private PropiedadRepositoryImpl propiedadRepository;
 
-    public List<Propiedad> buscarTodos() {
-        return (List<Propiedad>) this.propiedadRepository.findAll();
-    }
-
-    public Propiedad buscarPorId(Integer id) {
-        return this.propiedadRepository.findById(id);
-    }
-
-    public void guardar(Propiedad propiedad) {
+    @Auditoria
+    public void guardarPropiedad(Propiedad propiedad) {
+        String nombreHilo = Thread.currentThread().getName();
+        System.out.println("Nombre del hilo PropiedadService: " + nombreHilo);
+        System.out.println("ID: " + Thread.currentThread().threadId());
         this.propiedadRepository.persist(propiedad);
     }
 
-    public void eliminar(Integer id) {
-        this.propiedadRepository.delete(this.buscarPorId(id));
+    public void eliminarPropiedad(Integer id) {
+        this.propiedadRepository.deleteById(this.propiedadRepository.findById(id).getId());
     }
 
     public void actualizar(Propiedad propiedadActualizado, Integer id) {
@@ -42,6 +39,25 @@ public class PropiedadService {
         propiedadBase.setCiudad(propiedadActualizado.getCiudad());
         propiedadBase.setPrecio(propiedadActualizado.getPrecio());
 
+    }
+
+    public Propiedad buscarPorId(Integer id) {
+        return this.propiedadRepository.findById(id);
+    }
+
+    public List<Propiedad> buscarTodos() {
+        return this.propiedadRepository.findAll().list();
+    }
+
+    @Auditoria
+    public void guardarListaPropiedades(List<Propiedad> lista) {
+        for (Propiedad prop : lista) {
+            this.propiedadRepository.persist(prop);
+        }
+    }
+
+    public Propiedad buscarPorNombre(String nombre) {
+        return this.propiedadRepository.buscarPorNombre(nombre);
     }
 
 }

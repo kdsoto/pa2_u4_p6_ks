@@ -55,4 +55,6 @@ public class ReporteResource {
         this.reporteService.eliminarReporte(id);
     }
 
+    
+
 }
